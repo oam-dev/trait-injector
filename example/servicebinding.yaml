@@ -1,0 +1,15 @@
+apiVersion: core.oam.dev/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: servicebinding-sample
+spec:
+  source:
+    objectRef:
+      apiVersion: v1
+      kind: Secret
+      name: my-secret
+  target:
+    objectRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: busybox1

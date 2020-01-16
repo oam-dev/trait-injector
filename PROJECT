@@ -1,0 +1,7 @@
+domain: oam.dev
+repo: github.com/oam-dev/trait-injector
+resources:
+- group: core
+  kind: ServiceBinding
+  version: v1alpha1
+version: "2"
