@@ -54,6 +54,8 @@ func main() {
 		o.Development = true
 	}))
 
+	// We instantiate a manager, which keeps track of running all of our controllers,
+	// as well as setting up shared caches and clients to the API server (notice we tell the manager about our Scheme).
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,

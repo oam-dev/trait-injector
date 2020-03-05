@@ -3,13 +3,13 @@ kind: ServiceBinding
 metadata:
   name: servicebinding-sample
 spec:
-  source:
-    objectRef:
-      apiVersion: v1
-      kind: Secret
-      name: my-secret
-  target:
-    objectRef:
-      apiVersion: apps/v1
-      kind: Deployment
-      name: busybox1
+  bindings:
+    - from:
+        secret:
+          secretName: my-secret
+      to:
+        env: true
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: busybox1

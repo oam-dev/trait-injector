@@ -150,9 +150,14 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 
 	var sb *corev1alpha1.ServiceBinding
 	for _, item := range sbl.Items {
-		obj := item.Spec.Target.ObjectRef
-		r.Log.Info("kind matching", "target", obj.GroupVersionKind().String(), "request", req.Kind.String())
-		if rk, tk := req.Kind, obj.GroupVersionKind(); rk.Kind == tk.Kind && rk.Group == tk.Group && rk.Version == tk.Version {
+		obj := item.Spec.WorkloadRef
+		r.Log.Info("kind matching", "apiVersion", obj.APIVersion, "kind", obj.Kind, "request", req.Kind.String())
+		rk := req.Kind
+		gv := rk.Version
+		if len(rk.Group) > 0 {
+			gv = fmt.Sprintf("%s/%s", rk.Group, rk.Version)
+		}
+		if rk.Kind == obj.Kind && gv == obj.APIVersion {
 			sb = &item
 			break
 		}
@@ -162,23 +167,34 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 		return nil, nil
 	}
 
-	tObj := sb.Spec.Target.ObjectRef
-	r.Log.Info("target", "apiVersion", tObj.APIVersion, "kind", tObj.Kind)
+	for _, b := range sb.Spec.Bindings {
+		if b.From.Secret != nil {
+			return r.injectSecret(req, sb, b)
+		}
+	}
+	return nil, nil
+}
+
+func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionRequest, sb *corev1alpha1.ServiceBinding, b corev1alpha1.Binding) ([]webhook.JSONPatchOp, error) {
+	w := sb.Spec.WorkloadRef
+	s := b.From.Secret
+
+	// TODO: support SecretNameFrom
+	secretName := s.SecretName
 
 	switch {
 	// Deployment target
-	case tObj.APIVersion == "apps/v1" && tObj.Kind == "Deployment":
+	case w.APIVersion == "apps/v1" && w.Kind == "Deployment":
 		var deployment *appsv1.Deployment
 		err := json.Unmarshal(req.Object.Raw, &deployment)
 		if err != nil {
 			return nil, err
 		}
-		sObj := sb.Spec.Source.ObjectRef
-		switch {
-		// Secret source
-		case sObj.APIVersion == "v1" && sObj.Kind == "Secret":
-			var patches []webhook.JSONPatchOp
-			// Inject secret as env into deployment
+
+		var patches []webhook.JSONPatchOp
+
+		// Inject secret to env in deployment
+		if b.To.Env {
 			for i, c := range deployment.Spec.Template.Spec.Containers {
 				if len(c.EnvFrom) == 0 {
 					patch := webhook.JSONPatchOp{
@@ -195,22 +211,21 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 					Value: corev1.EnvFromSource{
 						SecretRef: &corev1.SecretEnvSource{
 							LocalObjectReference: corev1.LocalObjectReference{
-								Name: sObj.Name,
+								Name: secretName,
 							},
 						},
 					},
 				}
 				patches = append(patches, patch)
 			}
-
 			r.Log.Info("injected secret to env", "deployment", path.Join(deployment.Namespace, deployment.Name))
-			return patches, nil
-		default:
-			r.Log.Info("unsupported source kind", "gvk", sObj.GroupVersionKind().String())
-			return nil, nil
 		}
+
+		return patches, nil
+	case w.APIVersion == "apps/v1" && w.Kind == "StatefulSet":
+		panic("TODO: support StatefulSet")
 	default:
-		r.Log.Info("unsupported target kind ", "gvk", tObj.GroupVersionKind().String())
+		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
 		return nil, nil
 	}
 }

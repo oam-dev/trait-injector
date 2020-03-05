@@ -16,7 +16,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,26 +24,65 @@ import (
 
 // ServiceBindingSpec defines the desired state of ServiceBinding
 type ServiceBindingSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make generate manifests" to regenerate code after modifying this file
+	// Important: Run "make generate manifests" to regenerate code after modifying
 
-	// Foo is an example field of ServiceBinding. Edit ServiceBinding_types.go to remove/update
-	// Foo string `json:"foo,omitempty"`
+	Bindings []Binding `json:"bindings,omitempty"`
 
-	// Source indicates the source object to get binding data from.
-	Source ServiceBindingSource `json:"source,omitempty"`
-
-	// Target indicates the target objects to inject the binding data to.
-	Target ServiceBindingTarget `json:"target,omitempty"`
+	WorkloadRef *WorkloadReference `json:"workloadRef,omitempty"`
 }
 
-type ServiceBindingSource struct {
-	ObjectRef v1.ObjectReference `json:"objectRef"`
+type Binding struct {
+	// Source indicates the source object to get binding data from.
+	From DataSource `json:"from,omitempty"`
+
+	// Target indicates the target objects to inject the binding data to.
+	To DataTarget `json:"to,omitempty"`
+}
+
+type DataSource struct {
+	Secret *SecretSource `json:"secret,omitempty"`
+}
+type SecretSource struct {
+	SecretName     string           `json:"secretName,omitempty"`
+	SecretNameFrom SecretNameSource `json:"secretNameFrom,omitempty"`
+}
+
+type SecretNameSource struct {
+	// APIVersion of the referenced workload.
+	APIVersion string `json:"apiVersion,omitempty"`
+
+	// Kind of the referenced workload.
+	Kind string `json:"kind,omitempty"`
+
+	// Name of the referenced workload.
+	Name string `json:"name,omitempty"`
+
+	// Namespace of the referenced workload.
+	Namespace string `json:"namespace,omitempty"`
+
+	// The path of the field whose value is the secret name. E.g. ".status.output-secret" .
+	FieldPath string `json:"fieldPath,omitempty"`
 }
 
 // Target defines what target objects to inject the binding data to.
-type ServiceBindingTarget struct {
-	ObjectRef v1.ObjectReference `json:"objectRef"`
+type DataTarget struct {
+	// The path of the file where the data source is mounted.
+	FilePath string `json:"filePath,omitempty"`
+
+	// Env indicates whether to inject all `K=V` pairs from data source into environment variables.
+	Env bool `json:"env,omitempty"`
+}
+
+// A WorkloadReference refers to an OAM workload resource.
+type WorkloadReference struct {
+	// APIVersion of the referenced workload.
+	APIVersion string `json:"apiVersion"`
+
+	// Kind of the referenced workload.
+	Kind string `json:"kind"`
+
+	// Name of the referenced workload.
+	Name string `json:"name"`
 }
 
 type ServiceBindingStatus struct {

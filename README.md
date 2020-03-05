@@ -2,9 +2,15 @@
 
 Trait injector is a k8s admission webhook to intercept component workload operation and inject traits information.
 
+How it works with AppConfig controller:
+
+![alt text](./doc/img/appconfig-interact.jpg)
+
 ## Build
 
 ```bash
+make generate
+make manifests
 make
 ```
 
