@@ -55,16 +55,13 @@ spec:
                                 type: string
                               fieldPath:
                                 description: The path of the field whose value is
-                                  the secret name. E.g. ".status.output-secret".
+                                  the secret name. E.g. ".status.secret".
                                 type: string
                               kind:
                                 description: Kind of the referenced workload.
                                 type: string
                               name:
                                 description: Name of the referenced workload.
-                                type: string
-                              namespace:
-                                description: Namespace of the referenced workload.
                                 type: string
                             type: object
                         type: object

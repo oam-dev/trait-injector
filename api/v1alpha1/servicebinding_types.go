@@ -60,10 +60,7 @@ type SecretNameFromField struct {
 	// Name of the referenced workload.
 	Name string `json:"name,omitempty"`
 
-	// Namespace of the referenced workload.
-	Namespace string `json:"namespace,omitempty"`
-
-	// The path of the field whose value is the secret name. E.g. ".status.output-secret".
+	// The path of the field whose value is the secret name. E.g. ".status.secret".
 	FieldPath string `json:"fieldPath,omitempty"`
 }
 

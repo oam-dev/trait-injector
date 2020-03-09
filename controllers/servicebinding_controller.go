@@ -22,9 +22,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -40,9 +43,10 @@ import (
 
 // ServiceBindingReconciler reconciles a ServiceBinding object
 type ServiceBindingReconciler struct {
-	Client client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Client    client.Client
+	APIReader client.Reader
+	Log       logr.Logger
+	Scheme    *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=core.oam.dev,resources=servicebindings,verbs=get;list;watch;create;update;patch;delete
@@ -143,7 +147,7 @@ func newAdmissionResponse(review *admissionv1beta1.AdmissionReview, patch []byte
 func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.AdmissionRequest) ([]webhook.JSONPatchOp, error) {
 	// Search any ServiceBinding whose target matches the given request.
 	sbl := &corev1alpha1.ServiceBindingList{}
-	err := r.Client.List(context.TODO(), sbl)
+	err := r.Client.List(context.TODO(), sbl, client.InNamespace(req.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("list servicebindings err: %w", err)
 	}
@@ -180,12 +184,42 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 	s := b.From.Secret
 
 	secretName := s.Name
-	if s.NameFromField != nil {
-		// TODO: use dynamic client to read
+
+	// Read secret name from an object's field
+	if f := s.NameFromField; f != nil {
+		g := ""
+		v := f.APIVersion
+		if i := strings.Index(f.APIVersion, "/"); i != -1 {
+			g, v = f.APIVersion[:i], f.APIVersion[i+1:]
+		}
+		u := &unstructured.Unstructured{}
+		u.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   g,
+			Version: v,
+			Kind:    f.Kind,
+		})
+		err := r.APIReader.Get(context.Background(), client.ObjectKey{
+			Namespace: req.Namespace,
+			Name:      f.Name,
+		}, u)
+		if err != nil {
+			return nil, err
+		}
+		arr := strings.Split(f.FieldPath, ".")
+		found := false
+		if len(arr) > 1 {
+			fields := arr[1:]
+			secretName, found, err = unstructured.NestedString(u.Object, fields...)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("fieldPath not found: %s", f.FieldPath)
+		}
 	}
 
 	switch {
-	// Deployment target
 	case w.APIVersion == "apps/v1" && w.Kind == "Deployment":
 		var deployment *appsv1.Deployment
 		err := json.Unmarshal(req.Object.Raw, &deployment)
