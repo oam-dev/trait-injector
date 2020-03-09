@@ -41,6 +41,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	secretVolumeMountName = "secret-volume"
+)
+
 // ServiceBindingReconciler reconciles a ServiceBinding object
 type ServiceBindingReconciler struct {
 	Client    client.Client
@@ -255,6 +259,55 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 				patches = append(patches, patch)
 			}
 			r.Log.Info("injected secret to env", "deployment", path.Join(deployment.Namespace, deployment.Name))
+		}
+
+		// inject secret as file in Pod
+		if len(b.To.FilePath) != 0 {
+			if len(deployment.Spec.Template.Spec.Volumes) == 0 {
+				patch := webhook.JSONPatchOp{
+					Operation: "add",
+					Path:      "/spec/template/spec/volumes",
+					Value:     []corev1.Volume{},
+				}
+				patches = append(patches, patch)
+			}
+
+			patch := webhook.JSONPatchOp{
+				Operation: "add",
+				Path:      "/spec/template/spec/volumes/-",
+				Value: corev1.Volume{
+					Name: secretVolumeMountName,
+					VolumeSource: corev1.VolumeSource{
+						Secret: &corev1.SecretVolumeSource{
+							SecretName: secretName,
+						},
+					},
+				},
+			}
+			patches = append(patches, patch)
+
+			for i, c := range deployment.Spec.Template.Spec.Containers {
+				if len(c.VolumeMounts) == 0 {
+					patch := webhook.JSONPatchOp{
+						Operation: "add",
+						Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts", i),
+						Value:     []corev1.VolumeMount{},
+					}
+					patches = append(patches, patch)
+				}
+
+				patch := webhook.JSONPatchOp{
+					Operation: "add",
+					Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFvolumeMountsrom/-", i),
+					Value: corev1.VolumeMount{
+						Name:      secretVolumeMountName,
+						MountPath: b.To.FilePath,
+					},
+				}
+				patches = append(patches, patch)
+			}
+
+			r.Log.Info("injected secret to file", "deployment", path.Join(deployment.Namespace, deployment.Name))
 		}
 
 		return patches, nil
