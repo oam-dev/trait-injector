@@ -63,6 +63,7 @@ vet:
 # Build the docker image
 # first time needs to do `make` in ssl/
 docker-build:
+	eval $(minikube docker-env)
 	docker build . -t ${IMG}
 
 # Push the docker image
