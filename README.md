@@ -27,8 +27,9 @@ the `ssl/` dir contains a script to create a self-signed certificate, not sure t
 _NOTE: the app expects the cert/key to be in `ssl/` dir relative to where the app is running/started and currently is hardcoded to `mutateme.{key,pem}`_
 
 ```bash
-cd ssl/ 
-make 
+pushd ssl/
+make
+popd
 ```
 
 ## Docker
@@ -37,22 +38,37 @@ make
 make docker-build
 ```
 
-## Deploy to Minikube
+## Quickstart
+
+Gererate SSL certs if haven't done yet:
+
+```bash
+pushd ssl/
+make
+popd
+```
+
+Deploy to Minikube:
 
 ```bash
 make minikube
 ```
 
-## Quickstart
+Create ServiceBinding:
 
 ```bash
-# Create ServiceBinding
 kubectl create -f ./example/servicebinding.yaml
+```
 
-# Create Deployment and Secret
+Create the Deployment whose env to inject secret to, and also the Secret:
+```bash
 kubectl create -f ./example/noenv.yaml
+```
 
-# Verify the envFrom field has been injected successfully
+Verify the `envFrom` field of the Deployment updated:
+
+```bash
 kubectl get deploy busybox1 -o json | jq -r '.spec.template.spec.containers[0]'
 ```
+
 ![alt text](./doc/img/envFrom.png)
