@@ -47,10 +47,9 @@ const (
 
 // ServiceBindingReconciler reconciles a ServiceBinding object
 type ServiceBindingReconciler struct {
-	Client    client.Client
-	APIReader client.Reader
-	Log       logr.Logger
-	Scheme    *runtime.Scheme
+	Client client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=core.oam.dev,resources=servicebindings,verbs=get;list;watch;create;update;patch;delete
@@ -202,7 +201,7 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 			Version: v,
 			Kind:    f.Kind,
 		})
-		err := r.APIReader.Get(context.Background(), client.ObjectKey{
+		err := r.Client.Get(context.Background(), client.ObjectKey{
 			Namespace: req.Namespace,
 			Name:      f.Name,
 		}, u)
