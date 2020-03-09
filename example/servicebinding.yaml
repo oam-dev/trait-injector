@@ -9,6 +9,7 @@ spec:
           name: my-secret
       to:
         env: true
+        # filePath: /etc/secret-volume
   workloadRef:
     apiVersion: apps/v1
     kind: Deployment
