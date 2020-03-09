@@ -43,16 +43,19 @@ spec:
                     properties:
                       secret:
                         properties:
-                          secretName:
+                          name:
+                            description: Name of the secret.
                             type: string
-                          secretNameFrom:
+                          nameFromField:
+                            description: NameFromField indicates the object field
+                              where the secret name is written.
                             properties:
                               apiVersion:
                                 description: APIVersion of the referenced workload.
                                 type: string
                               fieldPath:
                                 description: The path of the field whose value is
-                                  the secret name. E.g. ".status.output-secret" .
+                                  the secret name. E.g. ".status.output-secret".
                                 type: string
                               kind:
                                 description: Kind of the referenced workload.

@@ -43,11 +43,14 @@ type DataSource struct {
 	Secret *SecretSource `json:"secret,omitempty"`
 }
 type SecretSource struct {
-	SecretName     string           `json:"secretName,omitempty"`
-	SecretNameFrom SecretNameSource `json:"secretNameFrom,omitempty"`
+	// NameFromField indicates the object field where the secret name is written.
+	NameFromField *SecretNameFromField `json:"nameFromField,omitempty"`
+
+	// Name of the secret.
+	Name string `json:"name,omitempty"`
 }
 
-type SecretNameSource struct {
+type SecretNameFromField struct {
 	// APIVersion of the referenced workload.
 	APIVersion string `json:"apiVersion,omitempty"`
 
@@ -60,7 +63,7 @@ type SecretNameSource struct {
 	// Namespace of the referenced workload.
 	Namespace string `json:"namespace,omitempty"`
 
-	// The path of the field whose value is the secret name. E.g. ".status.output-secret" .
+	// The path of the field whose value is the secret name. E.g. ".status.output-secret".
 	FieldPath string `json:"fieldPath,omitempty"`
 }
 

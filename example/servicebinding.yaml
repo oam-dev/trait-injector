@@ -6,7 +6,7 @@ spec:
   bindings:
     - from:
         secret:
-          secretName: my-secret
+          name: my-secret
       to:
         env: true
   workloadRef:

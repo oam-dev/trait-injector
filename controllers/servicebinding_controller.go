@@ -179,8 +179,10 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 	w := sb.Spec.WorkloadRef
 	s := b.From.Secret
 
-	// TODO: support SecretNameFrom
-	secretName := s.SecretName
+	secretName := s.Name
+	if s.NameFromField != nil {
+		// TODO: use dynamic client to read
+	}
 
 	switch {
 	// Deployment target
