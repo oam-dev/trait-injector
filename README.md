@@ -48,6 +48,12 @@ make
 popd
 ```
 
+Replace `caBundle` field value in `example/manager.yaml` with the data from below:
+
+```bash
+kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}'
+```
+
 Deploy to Minikube:
 
 ```bash

@@ -5,6 +5,7 @@ WORKDIR /go/src/github.com/creativesoftwarefdn/weaviate
 
 # Force the go compiler to use modules
 ENV GO111MODULE=on
+# ENV GOPROXY=https://goproxy.cn,direct
 
 # We want to populate the module cache based on the go.{mod,sum} files.
 COPY go.mod .
@@ -24,7 +25,6 @@ ENV GO111MODULE on
 ENV CGO_ENABLED 0
 ENV GOOS linux
 ENV GOARCH amd64
-ENV GOPRIVATE "gitlab.alibaba-inc.com/cloudnativeapp"
 
 WORKDIR /go/src/github.com/oam-dev/trait-injector
 ADD . .
