@@ -21,6 +21,8 @@ import (
 
 	corev1alpha1 "github.com/oam-dev/trait-injector/api/v1alpha1"
 	"github.com/oam-dev/trait-injector/controllers"
+	"github.com/oam-dev/trait-injector/pkg/injector"
+	"github.com/oam-dev/trait-injector/pkg/plugin"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -66,6 +68,13 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+
+	// register all injectors
+	plugin.RegisterTargetInjectors(
+		&injector.DeploymentTargetInjector{
+			Log: ctrl.Log.WithName("targetInjectors").WithName("Deployment"),
+		},
+	)
 
 	r := &controllers.ServiceBindingReconciler{
 		Client: mgr.GetClient(),

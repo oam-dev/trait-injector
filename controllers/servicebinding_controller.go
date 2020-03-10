@@ -25,24 +25,17 @@ import (
 	"strings"
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	"github.com/go-logr/logr"
 	corev1alpha1 "github.com/oam-dev/trait-injector/api/v1alpha1"
+	"github.com/oam-dev/trait-injector/pkg/plugin"
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	secretVolumeMountName = "secret-volume"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
 // ServiceBindingReconciler reconciles a ServiceBinding object
@@ -176,32 +169,30 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 
 	for _, b := range sb.Spec.Bindings {
 		if b.From.Secret != nil {
-			return r.injectSecret(req, sb, b)
+			return r.injectSecret(req, sb.Spec.WorkloadRef, b)
 		}
 	}
 	return nil, nil
 }
 
-func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionRequest, sb *corev1alpha1.ServiceBinding, b corev1alpha1.Binding) ([]webhook.JSONPatchOp, error) {
-	w := sb.Spec.WorkloadRef
+func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionRequest, w *corev1alpha1.WorkloadReference, b corev1alpha1.Binding) ([]webhook.JSONPatchOp, error) {
 	s := b.From.Secret
 
 	secretName := s.Name
 
 	// Read secret name from an object's field
 	if f := s.NameFromField; f != nil {
-		g := ""
-		v := f.APIVersion
-		if i := strings.Index(f.APIVersion, "/"); i != -1 {
-			g, v = f.APIVersion[:i], f.APIVersion[i+1:]
+		gv, err := schema.ParseGroupVersion(f.APIVersion)
+		if err != nil {
+			return nil, err
 		}
 		u := &unstructured.Unstructured{}
 		u.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   g,
-			Version: v,
+			Group:   gv.Group,
+			Version: gv.Version,
 			Kind:    f.Kind,
 		})
-		err := r.Client.Get(context.Background(), client.ObjectKey{
+		err = r.Client.Get(context.Background(), client.ObjectKey{
 			Namespace: req.Namespace,
 			Name:      f.Name,
 		}, u)
@@ -222,98 +213,23 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 		}
 	}
 
-	switch {
-	case w.APIVersion == "apps/v1" && w.Kind == "Deployment":
-		var deployment *appsv1.Deployment
-		err := json.Unmarshal(req.Object.Raw, &deployment)
+	for _, injector := range plugin.TargetInjectors {
+		if !injector.Match(req.Kind) {
+			continue
+		}
+
+		p, err := injector.Inject(plugin.TargetContext{
+			Binding: &b,
+			Values: map[string]interface{}{
+				"secret-name": secretName,
+			},
+		}, req.Object)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
-
-		var patches []webhook.JSONPatchOp
-
-		// Inject secret to env in deployment
-		if b.To.Env {
-			for i, c := range deployment.Spec.Template.Spec.Containers {
-				if len(c.EnvFrom) == 0 {
-					patch := webhook.JSONPatchOp{
-						Operation: "add",
-						Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFrom", i),
-						Value:     []corev1.EnvFromSource{},
-					}
-					patches = append(patches, patch)
-				}
-
-				patch := webhook.JSONPatchOp{
-					Operation: "add",
-					Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFrom/-", i),
-					Value: corev1.EnvFromSource{
-						SecretRef: &corev1.SecretEnvSource{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: secretName,
-							},
-						},
-					},
-				}
-				patches = append(patches, patch)
-			}
-			r.Log.Info("injected secret to env", "deployment", path.Join(deployment.Namespace, deployment.Name))
-		}
-
-		// inject secret as file in Pod
-		if len(b.To.FilePath) != 0 {
-			if len(deployment.Spec.Template.Spec.Volumes) == 0 {
-				patch := webhook.JSONPatchOp{
-					Operation: "add",
-					Path:      "/spec/template/spec/volumes",
-					Value:     []corev1.Volume{},
-				}
-				patches = append(patches, patch)
-			}
-
-			patch := webhook.JSONPatchOp{
-				Operation: "add",
-				Path:      "/spec/template/spec/volumes/-",
-				Value: corev1.Volume{
-					Name: secretVolumeMountName,
-					VolumeSource: corev1.VolumeSource{
-						Secret: &corev1.SecretVolumeSource{
-							SecretName: secretName,
-						},
-					},
-				},
-			}
-			patches = append(patches, patch)
-
-			for i, c := range deployment.Spec.Template.Spec.Containers {
-				if len(c.VolumeMounts) == 0 {
-					patch := webhook.JSONPatchOp{
-						Operation: "add",
-						Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts", i),
-						Value:     []corev1.VolumeMount{},
-					}
-					patches = append(patches, patch)
-				}
-
-				patch := webhook.JSONPatchOp{
-					Operation: "add",
-					Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFvolumeMountsrom/-", i),
-					Value: corev1.VolumeMount{
-						Name:      secretVolumeMountName,
-						MountPath: b.To.FilePath,
-					},
-				}
-				patches = append(patches, patch)
-			}
-
-			r.Log.Info("injected secret to file", "deployment", path.Join(deployment.Namespace, deployment.Name))
-		}
-
-		return patches, nil
-	case w.APIVersion == "apps/v1" && w.Kind == "StatefulSet":
-		panic("TODO: support StatefulSet")
-	default:
-		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
-		return nil, nil
+		return p, nil
 	}
+
+	r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
+	return nil, nil
 }

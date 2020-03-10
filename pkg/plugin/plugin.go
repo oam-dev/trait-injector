@@ -1,17 +1,28 @@
 package plugin
 
-import "k8s.io/apimachinery/pkg/runtime"
+import (
+	corev1alpha1 "github.com/oam-dev/trait-injector/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+)
 
-var WorkloadInjectors []WorkloadInjector
+var TargetInjectors []TargetInjector
 
-func Register(wi WorkloadInjector) {
-	WorkloadInjectors = append(WorkloadInjectors, wi)
+func RegisterTargetInjectors(ts ...TargetInjector) {
+	TargetInjectors = append(TargetInjectors, ts...)
 }
 
-type WorkloadInjector interface {
+// TargetInjector handles data injection to workload target.
+type TargetInjector interface {
 	Name() string
 
-	Match(runtime.Object) bool
+	Match(metav1.GroupVersionKind) bool
 
-	Inject(runtime.Object) runtime.Object
+	Inject(TargetContext, runtime.RawExtension) ([]webhook.JSONPatchOp, error)
+}
+
+type TargetContext struct {
+	Binding *corev1alpha1.Binding
+	Values  map[string]interface{}
 }
