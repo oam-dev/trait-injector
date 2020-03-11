@@ -60,6 +60,9 @@ Deploy to Minikube:
 make minikube
 ```
 
+
+## Inject Deployment
+
 Create ServiceBinding:
 
 ```bash
@@ -78,3 +81,22 @@ kubectl get deploy busybox1 -o json | jq -r '.spec.template.spec.containers[0]'
 ```
 
 ![alt text](./doc/img/envFrom.png)
+
+## Inject StatefulSet
+
+Create ServiceBinding for StatefulSet example:
+
+```bash
+kubectl create -f ./example/statefulSet/binding.yaml
+```
+
+Create the StatefulSet whose env to inject secret to, and also the Secret:
+```bash
+kubectl create -f ./example/statefulSet/statefulset.yaml
+```
+
+Verify the `envFrom` field of the Deployment updated:
+
+```bash
+kubectl get statefulset busybox1 -o json | jq -r '.spec.template.spec.containers[0]'
+```

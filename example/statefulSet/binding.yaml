@@ -1,0 +1,16 @@
+apiVersion: core.oam.dev/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: statefulset-sample
+spec:
+  bindings:
+    - from:
+        secret:
+          name: my-secret
+      to:
+        env: true
+        # filePath: /etc/secret-volume
+  workloadRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: busybox1
