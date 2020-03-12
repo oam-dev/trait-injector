@@ -107,7 +107,7 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 
 			patch := webhook.JSONPatchOp{
 				Operation: "add",
-				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFvolumeMountsrom/-", i),
+				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts/-", i),
 				Value: corev1.VolumeMount{
 					Name:      secretVolumeMountName,
 					MountPath: b.To.FilePath,
