@@ -74,6 +74,9 @@ func main() {
 		&injector.DeploymentTargetInjector{
 			Log: ctrl.Log.WithName("targetInjectors").WithName("Deployment"),
 		},
+		&injector.StatefulsetTargetInjector{
+			Log: ctrl.Log.WithName("targetInjectors").WithName("Statefulset"),
+		},
 	)
 
 	r := &controllers.ServiceBindingReconciler{
