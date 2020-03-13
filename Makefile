@@ -14,7 +14,7 @@ endif
 all: build
 
 # Run tests
-test: generate fmt vet manifests
+test: generate fmt vet manifests kubebuilder
 	go test ./... -coverprofile cover.out
 
 build:
@@ -85,4 +85,15 @@ ifeq (, $(shell which controller-gen))
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+# kubebuilder binary
+kubebuilder:
+ifeq (, $(shell which kubebuilder))
+	# Download kubebuilder and extract it to tmp
+	curl -sL https://go.kubebuilder.io/dl/2.3.0/$(shell go env GOOS)/$(shell go env GOARCH) | tar -xz -C /tmp/
+	# You'll need to set the KUBEBUILDER_ASSETS env var if you put it somewhere else
+	sudo mv /tmp/kubebuilder_2.3.0_$(shell go env GOOS)_$(shell go env GOARCH) /usr/local/kubebuilder
+newPATH:=$(PATH):/usr/local/kubebuilder/bin
+export PATH=$(newPATH)
 endif
