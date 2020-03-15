@@ -20,10 +20,19 @@ webhook:
   name: ""
   namespaceSelector:
     matchLabels:
-      project: oam
+      project: oam-service-binding
   objectSelector:
     matchLabels:
-      project: oam
+      project: oam-service-binding
+  rules:
+    - operations: ["CREATE"]
+      apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      resources: ["deployments"]
+    - operations: ["CREATE"]
+      apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      resources: ["statefulsets"]
 
 imagePullSecrets: []
 nameOverride: ""

@@ -16,6 +16,8 @@ webhooks:
       {{- toYaml .namespaceSelector | nindent 6 }}
     objectSelector:
       {{- toYaml .objectSelector | nindent 6 }}
+    rules:
+      {{- toYaml .rules | nindent 6 }}
     clientConfig:
       # kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}'
       # caBundle is the CA cert that sign the webhook's serving cert
@@ -25,12 +27,3 @@ webhooks:
         name: {{ include "charts.fullname" . }}
         namespace: {{ .Release.Namespace }}
         path: "/mutate"
-    rules:
-      - operations: ["CREATE"]
-        apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        resources: ["deployments"]
-      - operations: ["CREATE"]
-        apiGroups: ["apps"]
-        apiVersions: ["v1"]
-        resources: ["statefulsets"]
