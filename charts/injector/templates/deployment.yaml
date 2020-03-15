@@ -21,12 +21,19 @@ spec:
       serviceAccountName: {{ include "charts.fullname" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: {{ include "charts.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /app/ssl
           command:
             {{- toYaml .Values.operatorCmd.command | nindent 12}}
           args:

@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-export APP="${1:-injector-trait}"
+export APP="${1:-trait-injector}"
 export NAMESPACE="${2:-default}"
 
 output_dir="_generated/"
@@ -52,7 +52,7 @@ EOF
 openssl req -new -x509 -key ${output_dir}/ca.key -out ${output_dir}/ca.crt -config ${output_dir}/ca_config.txt
 
 # CREATE THE PRIVATE KEY FOR THE WEBHOOK
-openssl genrsa -out ${output_dir}/service-injector.key 2048
+openssl genrsa -out ${output_dir}/key.pem 2048
 
 cat > ${output_dir}/csr_config.txt <<EOF
 [req]
@@ -72,15 +72,14 @@ DNS.3 = ${APP}.${NAMESPACE}.svc
 DNS.4 = ${APP}.${NAMESPACE}.svc.cluster.local
 EOF
 # CREATE A CSR FROM THE CONFIGURATION FILE AND OUR PRIVATE KEY
-openssl req -new -key ${output_dir}/service-injector.key -subj "/CN=${APP}.${NAMESPACE}.svc" -out ${output_dir}/admission.csr -config ${output_dir}/csr_config.txt
+openssl req -new -key ${output_dir}/key.pem -subj "/CN=${APP}.${NAMESPACE}.svc" -out ${output_dir}/admission.csr -config ${output_dir}/csr_config.txt
 
 # CREATE THE CERT SIGNED BY THE CSR AND THE CA
-openssl x509 -req -days 365 -in ${output_dir}/admission.csr -CA ${output_dir}/ca.crt -CAkey ${output_dir}/ca.key -CAcreateserial -out ${output_dir}/service-injector.pem
+openssl x509 -req -days 365 -in ${output_dir}/admission.csr -CA ${output_dir}/ca.crt -CAkey ${output_dir}/ca.key -CAcreateserial -out ${output_dir}/crt.pem
 
-# Create certificates for Webhook to consume as a secret
-# kubectl create secret generic ${APP} -n ${NAMESPACE} \
-#   --from-file=${output_dir}/service-injector.key \
-#   --from-file=${output_dir}/service-injector.pem
-
-# Set 'caBundle' in Helm chart
-# sed -i .bak 's/_CABundle_/'"$(cat ${output_dir}/ca.crt | base64 | tr -d '\n'}")'/g'
+# Fill placeholders in Chart
+sed -i.bak \
+    -e 's/_CABundle_/'"$(cat ${output_dir}/ca.crt | base64 | tr -d '\n'})"'/g' \
+    -e 's/_injectorKey_/'"$(cat ${output_dir}/key.pem | base64 | tr -d '\n'})"'/g' \
+    -e 's/_injectorCrt_/'"$(cat ${output_dir}/crt.pem | base64 | tr -d '\n'})"'/g' \
+    values.yaml

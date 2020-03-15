@@ -1,7 +1,8 @@
 ssl/*.key
 ssl/*.pem
 ssl/*.csr
-_generated
+
+_generated/
 
 # Binaries for programs and plugins
 *.exe

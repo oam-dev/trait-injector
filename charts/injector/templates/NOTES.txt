@@ -1,2 +1,2 @@
-Running injector-trait service successfully.
+Running trait-injector service successfully.
 

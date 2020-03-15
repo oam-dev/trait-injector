@@ -16,7 +16,6 @@ operatorCmd:
   - --enable-leader-election
 
 webhook:
-  caBundle: "TODO"
   name: ""
   namespaceSelector:
     matchLabels:
@@ -33,6 +32,7 @@ webhook:
       apiGroups: ["apps"]
       apiVersions: ["v1"]
       resources: ["statefulsets"]
+  caBundle: "_CABundle_"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -76,3 +76,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+secret:
+  injectorKey: "_injectorKey_"
+  injectorCrt: "_injectorCrt_"
