@@ -27,7 +27,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- toYaml .Values.operatorCmd | nindent 10}}
+          command:
+            {{- toYaml .Values.operatorCmd.command | nindent 12}}
+          args:
+            {{- toYaml .Values.operatorCmd.args | nindent 12}}
           ports:
             - name: webhook
               containerPort: {{ .Values.service.targetPort }}

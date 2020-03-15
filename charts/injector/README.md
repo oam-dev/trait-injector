@@ -3,13 +3,9 @@
 ## Generate deploy manifests
 
 ```bash
-helm template $release-name .
+helm template ${release-name} .
 ```
 
-## Webhook Configuration
+## Configuration
 
-options:
-- rules, e.g. Deployment/StatefulSet Create
-- clientConfig, e.g. caBundle
-- namespaceSelector
-- objectSelector
+Chart configuration are available in _values.yaml_ .
