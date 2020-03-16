@@ -41,14 +41,16 @@ spec:
           ports:
             - name: webhook
               containerPort: {{ .Values.service.targetPort }}
+            - name: healthcheck
+              containerPort: 8888
           livenessProbe:
             httpGet:
               path: /
-              port: webhook
+              port: healthcheck
           readinessProbe:
             httpGet:
               path: /
-              port: webhook
+              port: healthcheck
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
     {{- with .Values.nodeSelector }}
