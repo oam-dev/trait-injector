@@ -64,10 +64,13 @@ func (r *ServiceBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *ServiceBindingReconciler) ServeAdmission() {
+	healthMux := http.NewServeMux()
+	healthMux.HandleFunc("/", healthCheck)
+	go http.ListenAndServe(":8888", healthMux)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/mutate", r.handleMutate)
-	mux.HandleFunc("/", healthCheck)
+	//mux.HandleFunc("/", healthCheck)
 
 	port := ":8443"
 	s := &http.Server{
