@@ -1,0 +1,28 @@
+
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "charts.fullname" . }}
+  labels:
+    {{- include "charts.labels" . | nindent 4 }}
+webhooks:
+  - name: {{ include "charts.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- with .Values.webhook }}
+    matchPolicy: Equivalent
+    reinvocationPolicy: Never
+    failurePolicy: Fail
+    timeoutSeconds: 30
+    namespaceSelector:
+      {{- toYaml .namespaceSelector | nindent 6 }}
+    objectSelector:
+      {{- toYaml .objectSelector | nindent 6 }}
+    rules:
+      {{- toYaml .rules | nindent 6 }}
+    clientConfig:
+      # caBundle is the CA cert that sign the webhook's serving cert
+      caBundle: {{ required "webhook.caBundle must be set" .caBundle }}
+{{- end }}
+      service:
+        name: {{ include "charts.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate"

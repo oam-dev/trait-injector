@@ -67,6 +67,7 @@ func (r *ServiceBindingReconciler) ServeAdmission() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/mutate", r.handleMutate)
+	mux.HandleFunc("/", healthCheck)
 
 	port := ":8443"
 	s := &http.Server{
@@ -232,4 +233,9 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 
 	r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
 	return nil, nil
+}
+
+func healthCheck(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("service up"))
 }
