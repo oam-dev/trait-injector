@@ -28,7 +28,7 @@ jobs:
     - name: Test
       run: make test
 
-    - uses: engineerd/setup-kind@v0.1.0
+    - uses: engineerd/setup-kind@v0.3.0
     - uses: engineerd/configurator@v0.0.1
       with:
         name: helm
