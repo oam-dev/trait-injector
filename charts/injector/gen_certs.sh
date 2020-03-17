@@ -70,6 +70,7 @@ DNS.1 = ${APP}
 DNS.2 = ${APP}.${NAMESPACE}
 DNS.3 = ${APP}.${NAMESPACE}.svc
 DNS.4 = ${APP}.${NAMESPACE}.svc.cluster.local
+IP.1 = 127.0.0.1
 EOF
 # CREATE A CSR FROM THE CONFIGURATION FILE AND OUR PRIVATE KEY
 openssl req -new -key ${output_dir}/key.pem -subj "/CN=${APP}.${NAMESPACE}.svc" -out ${output_dir}/admission.csr -config ${output_dir}/csr_config.txt

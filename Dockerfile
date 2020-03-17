@@ -19,6 +19,7 @@ COPY go.sum .
 # (or when we add another docker instruction this line)
 RUN go mod download
 
+
 FROM build_base as builder
 
 ENV GO111MODULE on
@@ -32,14 +33,6 @@ ADD . .
 # Build the manager binary
 RUN make
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-# FROM gcr.io/distroless/static:nonroot
-# WORKDIR /
-# COPY --from=builder /go/src/github.com/oam-dev/trait-injector/bin/manager .
-# COPY --from=builder /go/src/github.com/oam-dev/trait-injector/ssl ssl
-
-# ENTRYPOINT ["/manager"]
 
 FROM alpine
 
