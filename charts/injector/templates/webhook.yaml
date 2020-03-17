@@ -1,5 +1,5 @@
 
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: {{ include "charts.fullname" . }}
@@ -9,6 +9,8 @@ webhooks:
   - name: {{ include "charts.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- with .Values.webhook }}
     matchPolicy: Equivalent
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
     reinvocationPolicy: Never
     failurePolicy: Fail
     timeoutSeconds: 30
