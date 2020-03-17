@@ -16,8 +16,6 @@ limitations under the License.
 package controllers
 
 import (
-	"context"
-
 	. "github.com/onsi/ginkgo"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -31,23 +29,8 @@ var _ = BeforeSuite(func(done Done) {
 	By("bootstrapping test environment")
 
 	close(done)
-}, 60)
+}, 300)
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 })
-
-// SetupTest will set up a testing environment before each test
-// Call this function at the start of each of your tests.
-func SetupTest(ctx context.Context) {
-	var stopCh chan struct{}
-
-	BeforeEach(func() {
-		stopCh = make(chan struct{})
-
-	})
-
-	AfterEach(func() {
-		close(stopCh)
-	})
-}
