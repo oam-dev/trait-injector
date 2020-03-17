@@ -104,10 +104,8 @@ kind-e2e:
 	kind load docker-image $(IMG) \
 		|| { echo >&2 "kind not installed or error loading image: $(IMG)"; exit 1; } && \
 	kubectl apply -f ./config/crd/bases/core.oam.dev_servicebindings.yaml
-	pushd charts/injector/
-	./gen_certs.sh e2e-trait-injector
-	popd
+	./charts/injector/gen_certs.sh e2e-trait-injector
 	helm version
-	helm install e2e ./charts/injector --set image.repository=$(IMG) --set image.pullPolicy=IfNotPresent --wait \
+	helm install e2e ./charts/injector --set image.repository=$(IMG) --wait \
 		|| { echo >&2 "helm install timeout"; kubectl logs `kubectl get pods -l "app.kubernetes.io/name=rudr,app.kubernetes.io/instance=rudr" -o jsonpath="{.items[0].metadata.name}"`; exit 1; } && \
-	go test -v ./e2e-test
+	go test -v ./e2e-test/

@@ -79,8 +79,9 @@ openssl req -new -key ${output_dir}/key.pem -subj "/CN=${APP}.${NAMESPACE}.svc" 
 openssl x509 -req -days 365 -in ${output_dir}/admission.csr -CA ${output_dir}/ca.crt -CAkey ${output_dir}/ca.key -CAcreateserial -out ${output_dir}/crt.pem
 
 # Fill placeholders in Chart
+sourcedir=$(dirname "$0")
 sed -i.bak \
     -e 's/_CABundle_/'"$(cat ${output_dir}/ca.crt | base64 | tr -d '\n'})"'/g' \
     -e 's/_injectorKey_/'"$(cat ${output_dir}/key.pem | base64 | tr -d '\n'})"'/g' \
     -e 's/_injectorCrt_/'"$(cat ${output_dir}/crt.pem | base64 | tr -d '\n'})"'/g' \
-    values.yaml
+    ${sourcedir}/values.yaml
