@@ -70,6 +70,7 @@ DNS.1 = ${APP}
 DNS.2 = ${APP}.${NAMESPACE}
 DNS.3 = ${APP}.${NAMESPACE}.svc
 DNS.4 = ${APP}.${NAMESPACE}.svc.cluster.local
+IP.1 = 127.0.0.1
 EOF
 # CREATE A CSR FROM THE CONFIGURATION FILE AND OUR PRIVATE KEY
 openssl req -new -key ${output_dir}/key.pem -subj "/CN=${APP}.${NAMESPACE}.svc" -out ${output_dir}/admission.csr -config ${output_dir}/csr_config.txt
@@ -78,8 +79,9 @@ openssl req -new -key ${output_dir}/key.pem -subj "/CN=${APP}.${NAMESPACE}.svc" 
 openssl x509 -req -days 365 -in ${output_dir}/admission.csr -CA ${output_dir}/ca.crt -CAkey ${output_dir}/ca.key -CAcreateserial -out ${output_dir}/crt.pem
 
 # Fill placeholders in Chart
+sourcedir=$(dirname "$0")
 sed -i.bak \
     -e 's/_CABundle_/'"$(cat ${output_dir}/ca.crt | base64 | tr -d '\n'})"'/g' \
     -e 's/_injectorKey_/'"$(cat ${output_dir}/key.pem | base64 | tr -d '\n'})"'/g' \
     -e 's/_injectorCrt_/'"$(cat ${output_dir}/crt.pem | base64 | tr -d '\n'})"'/g' \
-    values.yaml
+    ${sourcedir}/values.yaml
