@@ -13,7 +13,7 @@ set -o pipefail
 export APP="${1:-trait-injector}"
 export NAMESPACE="${2:-default}"
 
-mkdir _generated/
+mkdir -p _generated/
 pushd _generated/
 
 cat >ca-config.json <<EOF
@@ -64,7 +64,7 @@ cat >ca-csr.json <<EOF
 }
 EOF
 
-cat >server-csr.json <<EOF
+cat >server.json <<EOF
 {
     "CN": "server",
     "hosts": [
@@ -102,7 +102,7 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca -
 #   server.pem
 cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server server.json | cfssljson -bare server
 
-
+popd
 
 # Fill placeholders in Chart
 sourcedir=$(dirname "$0")
@@ -112,4 +112,3 @@ sed -i.bak \
     -e 's/_injectorCrt_/'"$(cat server.pem | base64 | tr -d '\n'})"'/g' \
     ${sourcedir}/values.yaml
 
-popd
