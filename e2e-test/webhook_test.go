@@ -39,6 +39,7 @@ var _ = Context("with a secret", func() {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-secret",
 			Namespace: "default",
+			Labels:    map[string]string{"app": "test"},
 		},
 		StringData: map[string]string{"foo": "bar"},
 		Type:       corev1.SecretTypeOpaque,
@@ -50,6 +51,7 @@ var _ = Context("with a secret", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-env",
 				Namespace: "default",
+				Labels:    map[string]string{"app": "test"},
 			},
 			Spec: corev1alpha1.ServiceBindingSpec{
 				Bindings: []corev1alpha1.Binding{{
@@ -76,7 +78,7 @@ var _ = Context("with a secret", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-deploy",
 					Namespace: "default",
-					Labels:    map[string]string{"project": "oam-service-binding"},
+					Labels:    map[string]string{"project": "oam-service-binding", "app": "test"},
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
