@@ -47,6 +47,8 @@ jobs:
       run: |
         kind get kubeconfig > kubeconfig
         export KUBECONFIG="$PWD/kubeconfig"
+        cfssl version
+        cfssljson -version
         kubectl version
         kubectl get pods -n kube-system
         kubectl wait -n kube-system --for=condition=Ready -l k8s-app=kube-dns pods
