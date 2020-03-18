@@ -3,6 +3,7 @@
 # References:
 #   https://coreos.com/os/docs/latest/generate-self-signed-certificates.html
 #   https://github.com/coreos/etcd-operator/tree/master/example/tls/certs
+#
 # command to check certificate:
 #   openssl x509 -in certificate.pem -text -noout
 
@@ -13,8 +14,9 @@ set -o pipefail
 export APP="${1:-trait-injector}"
 export NAMESPACE="${2:-default}"
 
-mkdir -p _generated/
-pushd _generated/
+output_dir="_generated/"
+mkdir -p ${output_dir}
+pushd ${output_dir}
 
 cat >ca-config.json <<EOF
 {
@@ -107,8 +109,7 @@ popd
 # Fill placeholders in Chart
 sourcedir=$(dirname "$0")
 sed -i.bak \
-    -e 's/_CABundle_/'"$(cat ca.pem | base64 | tr -d '\n'})"'/g' \
-    -e 's/_injectorKey_/'"$(cat server-key.pem | base64 | tr -d '\n'})"'/g' \
-    -e 's/_injectorCrt_/'"$(cat server.pem | base64 | tr -d '\n'})"'/g' \
+    -e 's/_CABundle_/'"$(cat ${output_dir}/ca.pem | base64 | tr -d '\n'})"'/g' \
+    -e 's/_injectorKey_/'"$(cat ${output_dir}/server-key.pem | base64 | tr -d '\n'})"'/g' \
+    -e 's/_injectorCrt_/'"$(cat ${output_dir}/server.pem | base64 | tr -d '\n'})"'/g' \
     ${sourcedir}/values.yaml
-
