@@ -34,11 +34,20 @@ jobs:
         name: helm
         url: https://get.helm.sh/helm-v3.1.2-linux-amd64.tar.gz
         pathInArchive: linux-amd64/helm
+    - uses: engineerd/configurator@v0.0.1
+      with:
+        name: cfssl
+        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssl_1.4.1_linux_amd64
+    - uses: engineerd/configurator@v0.0.1
+      with:
+        name: cfssljson
+        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssljson_1.4.1_linux_amd64
 
     - name: Kubernetes E2E
       run: |
         kind get kubeconfig > kubeconfig
         export KUBECONFIG="$PWD/kubeconfig"
+        cfssl version
         kubectl version
         kubectl get pods -n kube-system
         kubectl wait -n kube-system --for=condition=Ready -l k8s-app=kube-dns pods
