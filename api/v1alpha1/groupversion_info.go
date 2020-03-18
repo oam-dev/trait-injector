@@ -24,8 +24,14 @@ import (
 )
 
 var (
+	GroupVersionKind = schema.GroupVersionKind{
+		Group:   "core.oam.dev",
+		Kind:    "ServiceBinding",
+		Version: "v1alpha1",
+	}
+
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "core.oam.dev", Version: "v1alpha1"}
+	GroupVersion = schema.GroupVersion{Group: GroupVersionKind.Group, Version: GroupVersionKind.Version}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
