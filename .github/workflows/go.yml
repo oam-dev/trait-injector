@@ -34,6 +34,14 @@ jobs:
         name: helm
         url: https://get.helm.sh/helm-v3.1.2-linux-amd64.tar.gz
         pathInArchive: linux-amd64/helm
+    - uses: engineerd/configurator@v0.0.1
+      with:
+        name: cfssl
+        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssl-bundle_1.4.1_linux_amd64
+    - uses: engineerd/configurator@v0.0.1
+      with:
+        name: cfssljson
+        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssljson_1.4.1_linux_amd64
 
     - name: Kubernetes E2E
       run: |
