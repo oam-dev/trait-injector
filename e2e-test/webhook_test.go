@@ -76,6 +76,7 @@ var _ = Context("with a secret", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-deploy",
 					Namespace: "default",
+					Labels:    map[string]string{"project": "oam-service-binding"},
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
@@ -109,7 +110,7 @@ var _ = Context("with a secret", func() {
 				getResourceFunc(ctx, objectKey, res),
 				time.Second*5, time.Millisecond*500).Should(BeNil())
 
-			Expect(len(res.Spec.Template.Spec.Containers[0].Env)).NotTo(BeZero())
+			Expect(len(res.Spec.Template.Spec.Containers[0].EnvFrom)).NotTo(BeZero())
 		})
 	})
 })

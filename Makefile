@@ -108,5 +108,8 @@ kind-e2e:
 	helm version
 	helm install e2e ./charts/injector --set image.repository=$(IMG) --wait \
 		|| { echo >&2 "helm install timeout"; kubectl logs `kubectl get pods -l "app.kubernetes.io/name=rudr,app.kubernetes.io/instance=rudr" -o jsonpath="{.items[0].metadata.name}"`; exit 1; }
-	kubectl label namespaces default project=oam-service-binding
+	kubectl label namespaces default project=oam-service-binding --overwrite
+	kubectl delete deploy test-deploy
+	kubectl delete secret test-secret
+	kubectl delete servicebinding test-env
 	go test -v ./e2e-test/
