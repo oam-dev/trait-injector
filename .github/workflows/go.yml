@@ -37,7 +37,7 @@ jobs:
     - uses: engineerd/configurator@v0.0.1
       with:
         name: cfssl
-        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssl-bundle_1.4.1_linux_amd64
+        url: https://github.com/cloudflare/cfssl/releases/download/v1.4.1/cfssl_1.4.1_linux_amd64
     - uses: engineerd/configurator@v0.0.1
       with:
         name: cfssljson
@@ -48,7 +48,6 @@ jobs:
         kind get kubeconfig > kubeconfig
         export KUBECONFIG="$PWD/kubeconfig"
         cfssl version
-        cfssljson -version
         kubectl version
         kubectl get pods -n kube-system
         kubectl wait -n kube-system --for=condition=Ready -l k8s-app=kube-dns pods
