@@ -16,17 +16,28 @@ limitations under the License.
 package controllers
 
 import (
-	. "github.com/onsi/ginkgo"
+	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
 )
 
-var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+func TestAPIs(t *testing.T) {
+	RegisterFailHandler(Fail)
 
+	RunSpecsWithDefaultAndCustomReporters(t,
+		"Controller Suite",
+		[]Reporter{envtest.NewlineReporter{}})
+}
+
+var _ = BeforeSuite(func(done Done) {
 	By("bootstrapping test environment")
+	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
 
 	close(done)
 }, 300)
