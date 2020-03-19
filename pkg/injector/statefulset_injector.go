@@ -42,6 +42,7 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 
 	b := ctx.Binding
 	secretName, pvcName := getValues(ctx)
+	volumemountName := makeVolumeMountName(secretName, pvcName)
 	// Inject secret to env in deployment
 	if b.To.Env {
 		for i, c := range statefulSet.Spec.Template.Spec.Containers {
@@ -85,7 +86,7 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 			Operation: "add",
 			Path:      "/spec/template/spec/volumes/-",
 			Value: corev1.Volume{
-				Name:         volumeMountName,
+				Name:         volumemountName,
 				VolumeSource: makeVolumeSource(secretName, pvcName),
 			},
 		}
@@ -105,7 +106,7 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 				Operation: "add",
 				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts/-", i),
 				Value: corev1.VolumeMount{
-					Name:      volumeMountName,
+					Name:      volumemountName,
 					MountPath: b.To.FilePath,
 				},
 			}

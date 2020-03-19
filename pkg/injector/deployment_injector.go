@@ -14,10 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
-const (
-	volumeMountName = "service-binding-volume"
-)
-
 var _ plugin.TargetInjector = &DeploymentTargetInjector{}
 
 type DeploymentTargetInjector struct {
@@ -46,6 +42,7 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 
 	b := ctx.Binding
 	secretName, pvcName := getValues(ctx)
+	volumemountName := makeVolumeMountName(secretName, pvcName)
 	// Inject secret to env in deployment
 	if b.To.Env {
 		for i, c := range deployment.Spec.Template.Spec.Containers {
@@ -89,7 +86,7 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 			Operation: "add",
 			Path:      "/spec/template/spec/volumes/-",
 			Value: corev1.Volume{
-				Name:         volumeMountName,
+				Name:         volumemountName,
 				VolumeSource: makeVolumeSource(secretName, pvcName),
 			},
 		}
@@ -109,7 +106,7 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 				Operation: "add",
 				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts/-", i),
 				Value: corev1.VolumeMount{
-					Name:      volumeMountName,
+					Name:      volumemountName,
 					MountPath: b.To.FilePath,
 				},
 			}
