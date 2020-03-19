@@ -1,0 +1,36 @@
+package injector
+
+import (
+	"github.com/oam-dev/trait-injector/pkg/plugin"
+
+	corev1 "k8s.io/api/core/v1"
+)
+
+func getValues(ctx plugin.TargetContext) (string, string) {
+	var secretName, pvcName string
+	if val, ok := ctx.Values["secret-name"]; ok {
+		secretName = val.(string)
+	}
+	if val, ok := ctx.Values["pvc-name"]; ok {
+		pvcName = val.(string)
+	}
+	return secretName, pvcName
+}
+
+func makeVolumeSource(secretName, pvcName string) corev1.VolumeSource {
+	var vs corev1.VolumeSource
+	if len(secretName) != 0 {
+		vs = corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: secretName,
+			},
+		}
+	} else if len(pvcName) != 0 {
+		vs = corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: pvcName,
+			},
+		}
+	}
+	return vs
+}

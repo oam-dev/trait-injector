@@ -7,9 +7,11 @@ spec:
     - from:
         secret:
           name: my-secret
+        # volume:
+        #   pvcName: nas-pvc
       to:
         env: true
-        # filePath: /etc/secret-volume
+        # filePath: /data
   workloadRef:
     apiVersion: apps/v1
     kind: Deployment

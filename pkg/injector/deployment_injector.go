@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	secretVolumeMountName = "secret-volume"
+	volumeMountName = "service-binding-volume"
 )
 
 var _ plugin.TargetInjector = &DeploymentTargetInjector{}
@@ -45,7 +45,7 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 	var patches []webhook.JSONPatchOp
 
 	b := ctx.Binding
-	secretName := ctx.Values["secret-name"].(string)
+	secretName, pvcName := getValues(ctx)
 	// Inject secret to env in deployment
 	if b.To.Env {
 		for i, c := range deployment.Spec.Template.Spec.Containers {
@@ -89,12 +89,8 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 			Operation: "add",
 			Path:      "/spec/template/spec/volumes/-",
 			Value: corev1.Volume{
-				Name: secretVolumeMountName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: secretName,
-					},
-				},
+				Name:         volumeMountName,
+				VolumeSource: makeVolumeSource(secretName, pvcName),
 			},
 		}
 		patches = append(patches, patch)
@@ -111,16 +107,16 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 
 			patch := webhook.JSONPatchOp{
 				Operation: "add",
-				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/envFvolumeMountsrom/-", i),
+				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts/-", i),
 				Value: corev1.VolumeMount{
-					Name:      secretVolumeMountName,
+					Name:      volumeMountName,
 					MountPath: b.To.FilePath,
 				},
 			}
 			patches = append(patches, patch)
 		}
 
-		ti.Log.Info("injected secret to file", "deployment", path.Join(deployment.Namespace, deployment.Name))
+		ti.Log.Info("injected volume to file", "deployment", path.Join(deployment.Namespace, deployment.Name))
 	}
 
 	return patches, nil

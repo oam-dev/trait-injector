@@ -71,7 +71,7 @@ kubectl create -f ./example/servicebinding.yaml
 
 Create the Deployment whose env to inject secret to, and also the Secret:
 ```bash
-kubectl create -f ./example/noenv.yaml
+kubectl create -f ./example/test-deploy.yaml
 ```
 
 Verify the `envFrom` field of the Deployment updated:
