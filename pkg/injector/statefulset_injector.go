@@ -41,7 +41,8 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 	var patches []webhook.JSONPatchOp
 
 	b := ctx.Binding
-	secretName := ctx.Values["secret-name"].(string)
+	secretName, pvcName := getValues(ctx)
+	volumemountName := makeVolumeMountName(secretName, pvcName)
 	// Inject secret to env in deployment
 	if b.To.Env {
 		for i, c := range statefulSet.Spec.Template.Spec.Containers {
@@ -85,12 +86,8 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 			Operation: "add",
 			Path:      "/spec/template/spec/volumes/-",
 			Value: corev1.Volume{
-				Name: secretVolumeMountName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: secretName,
-					},
-				},
+				Name:         volumemountName,
+				VolumeSource: makeVolumeSource(secretName, pvcName),
 			},
 		}
 		patches = append(patches, patch)
@@ -109,14 +106,14 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 				Operation: "add",
 				Path:      fmt.Sprintf("/spec/template/spec/containers/%d/volumeMounts/-", i),
 				Value: corev1.VolumeMount{
-					Name:      secretVolumeMountName,
+					Name:      volumemountName,
 					MountPath: b.To.FilePath,
 				},
 			}
 			patches = append(patches, patch)
 		}
 
-		ti.Log.Info("injected secret to file", "statefulSet", path.Join(statefulSet.Namespace, statefulSet.Name))
+		ti.Log.Info("injected volume to file", "statefulSet", path.Join(statefulSet.Namespace, statefulSet.Name))
 	}
 
 	return patches, nil

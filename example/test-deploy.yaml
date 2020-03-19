@@ -4,6 +4,7 @@ metadata:
   name: busybox1
   labels:
     app: busybox1
+    project: oam-service-binding
 spec:
   replicas: 1
   selector:

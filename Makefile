@@ -101,10 +101,8 @@ endif
 
 kind-e2e:
 	docker build -t $(IMG) -f Dockerfile .
-	kind load docker-image $(IMG) \
-		|| { echo >&2 "kind not installed or error loading image: $(IMG)"; exit 1; } && \
+	kind load docker-image $(IMG) || { echo >&2 "kind not installed or error loading image: $(IMG)"; exit 1; }
 	kubectl apply -f ./config/crd/bases/core.oam.dev_servicebindings.yaml
-	# ./charts/injector/gen_certs.sh e2e-trait-injector
 	./charts/injector/cfssl_gen.sh e2e-trait-injector
 	helm version
 	helm install e2e ./charts/injector --set image.repository=$(IMG) --wait \

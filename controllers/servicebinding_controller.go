@@ -174,11 +174,28 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 	}
 
 	for _, b := range sb.Spec.Bindings {
-		if b.From.Secret != nil {
+		switch {
+		case b.From.Secret != nil:
 			return r.injectSecret(req, sb.Spec.WorkloadRef, b)
+		case b.From.Volume != nil:
+			return r.injectVolume(req, sb.Spec.WorkloadRef, b)
 		}
 	}
 	return nil, nil
+}
+
+func (r *ServiceBindingReconciler) injectVolume(req *admissionv1beta1.AdmissionRequest, w *corev1alpha1.WorkloadReference, b corev1alpha1.Binding) ([]webhook.JSONPatchOp, error) {
+	if ok, p, err := inject2workload(plugin.TargetContext{
+		Binding: &b,
+		Values: map[string]interface{}{
+			"pvc-name": b.From.Volume.PVCName,
+		},
+	}, req); ok {
+		return p, err
+	} else {
+		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
+		return nil, nil
+	}
 }
 
 func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionRequest, w *corev1alpha1.WorkloadReference, b corev1alpha1.Binding) ([]webhook.JSONPatchOp, error) {
@@ -219,25 +236,32 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 		}
 	}
 
+	if ok, p, err := inject2workload(plugin.TargetContext{
+		Binding: &b,
+		Values: map[string]interface{}{
+			"secret-name": secretName,
+		},
+	}, req); ok {
+		return p, err
+	} else {
+		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
+		return nil, nil
+	}
+}
+
+func inject2workload(pctx plugin.TargetContext, req *admissionv1beta1.AdmissionRequest) (bool, []webhook.JSONPatchOp, error) {
 	for _, injector := range plugin.TargetInjectors {
 		if !injector.Match(req.Kind) {
 			continue
 		}
 
-		p, err := injector.Inject(plugin.TargetContext{
-			Binding: &b,
-			Values: map[string]interface{}{
-				"secret-name": secretName,
-			},
-		}, req.Object)
+		p, err := injector.Inject(pctx, req.Object)
 		if err != nil {
 			panic(err)
 		}
-		return p, nil
+		return true, p, nil
 	}
-
-	r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
-	return nil, nil
+	return false, nil, nil
 }
 
 func healthCheck(w http.ResponseWriter, req *http.Request) {

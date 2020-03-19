@@ -41,7 +41,10 @@ type Binding struct {
 
 type DataSource struct {
 	Secret *SecretSource `json:"secret,omitempty"`
+
+	Volume *VolumeSource `json:"volume,omitempty"`
 }
+
 type SecretSource struct {
 	// NameFromField indicates the object field where the secret name is written.
 	NameFromField *SecretNameFromField `json:"nameFromField,omitempty"`
@@ -62,6 +65,11 @@ type SecretNameFromField struct {
 
 	// The path of the field whose value is the secret name. E.g. ".status.secret".
 	FieldPath string `json:"fieldPath,omitempty"`
+}
+
+type VolumeSource struct {
+	// PVCName indicates the name of the PVC as the volume source to inject.
+	PVCName string `json:"pvcName,omitempty"`
 }
 
 // Target defines what target objects to inject the binding data to.
