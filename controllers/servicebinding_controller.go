@@ -190,7 +190,7 @@ func (r *ServiceBindingReconciler) injectVolume(req *admissionv1beta1.AdmissionR
 		Values: map[string]interface{}{
 			"pvc-name": b.From.Volume.PVCName,
 		},
-	}, req); ok {
+	}, req, w); ok {
 		return p, err
 	} else {
 		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
