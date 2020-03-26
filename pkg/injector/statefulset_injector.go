@@ -6,10 +6,11 @@ import (
 	"path"
 
 	"github.com/go-logr/logr"
+	corev1alpha1 "github.com/oam-dev/trait-injector/api/v1alpha1"
 	"github.com/oam-dev/trait-injector/pkg/plugin"
+	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -24,8 +25,9 @@ func (ti *StatefulsetTargetInjector) Name() string {
 	return "StatefulsetTargetInjector"
 }
 
-func (ti *StatefulsetTargetInjector) Match(k metav1.GroupVersionKind) bool {
-	if k.Group == "apps" && k.Version == "v1" && k.Kind == "StatefulSet" {
+func (ti *StatefulsetTargetInjector) Match(req *admissionv1beta1.AdmissionRequest, w *corev1alpha1.WorkloadReference) bool {
+	k := req.Kind
+	if k.Group == "apps" && k.Version == "v1" && k.Kind == "StatefulSet" && req.Name == w.Name {
 		return true
 	}
 	return false
