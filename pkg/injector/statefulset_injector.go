@@ -12,6 +12,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
@@ -19,6 +20,12 @@ var _ plugin.TargetInjector = &StatefulsetTargetInjector{}
 
 type StatefulsetTargetInjector struct {
 	Log logr.Logger
+}
+
+func newStatefulsetTargetInjector() *StatefulsetTargetInjector {
+	return &StatefulsetTargetInjector{
+		Log: ctrl.Log.WithName("targetInjectors").WithName("Statefulset"),
+	}
 }
 
 func (ti *StatefulsetTargetInjector) Name() string {

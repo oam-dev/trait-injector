@@ -12,6 +12,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
@@ -19,6 +20,12 @@ var _ plugin.TargetInjector = &DeploymentTargetInjector{}
 
 type DeploymentTargetInjector struct {
 	Log logr.Logger
+}
+
+func newDeploymentTargetInjector() *DeploymentTargetInjector {
+	return &DeploymentTargetInjector{
+		Log: ctrl.Log.WithName("targetInjectors").WithName("Deployment"),
+	}
 }
 
 func (ti *DeploymentTargetInjector) Name() string {
