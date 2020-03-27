@@ -190,7 +190,7 @@ func (r *ServiceBindingReconciler) injectVolume(req *admissionv1beta1.AdmissionR
 		Values: map[string]interface{}{
 			"pvc-name": b.From.Volume.PVCName,
 		},
-	}, req); ok {
+	}, req, w); ok {
 		return p, err
 	} else {
 		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
@@ -241,7 +241,7 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 		Values: map[string]interface{}{
 			"secret-name": secretName,
 		},
-	}, req); ok {
+	}, req, w); ok {
 		return p, err
 	} else {
 		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
@@ -249,9 +249,9 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 	}
 }
 
-func inject2workload(pctx plugin.TargetContext, req *admissionv1beta1.AdmissionRequest) (bool, []webhook.JSONPatchOp, error) {
+func inject2workload(pctx plugin.TargetContext, req *admissionv1beta1.AdmissionRequest, w *corev1alpha1.WorkloadReference) (bool, []webhook.JSONPatchOp, error) {
 	for _, injector := range plugin.TargetInjectors {
-		if !injector.Match(req.Kind) {
+		if !injector.Match(req, w) {
 			continue
 		}
 

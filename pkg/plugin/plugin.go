@@ -2,7 +2,7 @@ package plugin
 
 import (
 	corev1alpha1 "github.com/oam-dev/trait-injector/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -17,7 +17,7 @@ func RegisterTargetInjectors(ts ...TargetInjector) {
 type TargetInjector interface {
 	Name() string
 
-	Match(metav1.GroupVersionKind) bool
+	Match(*admissionv1beta1.AdmissionRequest, *corev1alpha1.WorkloadReference) bool
 
 	Inject(TargetContext, runtime.RawExtension) ([]webhook.JSONPatchOp, error)
 }

@@ -70,14 +70,7 @@ func main() {
 	}
 
 	// register all injectors
-	plugin.RegisterTargetInjectors(
-		&injector.DeploymentTargetInjector{
-			Log: ctrl.Log.WithName("targetInjectors").WithName("Deployment"),
-		},
-		&injector.StatefulsetTargetInjector{
-			Log: ctrl.Log.WithName("targetInjectors").WithName("Statefulset"),
-		},
-	)
+	plugin.RegisterTargetInjectors(injector.Defaults()...)
 
 	r := &controllers.ServiceBindingReconciler{
 		Client:   mgr.GetClient(),
