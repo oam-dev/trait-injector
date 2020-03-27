@@ -11,7 +11,6 @@ webhooks:
     matchPolicy: Equivalent
     admissionReviewVersions: ["v1", "v1beta1"]
     sideEffects: None
-    reinvocationPolicy: Never
     failurePolicy: Fail
     timeoutSeconds: 30
     namespaceSelector:
