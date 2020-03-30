@@ -1,7 +1,7 @@
 apiVersion: core.oam.dev/v1alpha1
 kind: ServiceBinding
 metadata:
-  name: servicebinding-sample
+  name: servicebinding-sample-1
 spec:
   bindings:
     - from:
@@ -20,4 +20,26 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: busybox1
-    namespace: default
+---
+apiVersion: core.oam.dev/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: servicebinding-sample-2
+spec:
+  bindings:
+    - from:
+        secret:
+          name: my-secret
+        # volume:
+        #   pvcName: nas-pvc
+      to:
+        env: true
+        # filePath: /data
+
+      # containerSelector:
+      #   byNames: ["a"]
+
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: busybox2

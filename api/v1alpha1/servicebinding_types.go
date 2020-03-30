@@ -97,9 +97,6 @@ type WorkloadReference struct {
 
 	// Name of the referenced workload.
 	Name string `json:"name"`
-
-	// Namespace of the referenced workload.
-	Namespace string `json:"namespace"`
 }
 
 type ServiceBindingStatus struct {

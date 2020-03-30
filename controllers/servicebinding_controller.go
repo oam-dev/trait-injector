@@ -157,13 +157,12 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 	var sb *corev1alpha1.ServiceBinding
 	for _, item := range sbl.Items {
 		w := item.Spec.WorkloadRef
-		r.Log.Info("kind matching", "apiVersion", w.APIVersion, "kind", w.Kind, "ns/name", w.Namespace+"/"+w.Name, "request", req.Kind.String()+", "+req.Namespace+"/"+w.Name)
+		r.Log.Info("kind matching", "apiVersion", w.APIVersion, "kind", w.Kind, "name", w.Name, "request", req.Kind.String()+", "+req.Namespace+"/"+w.Name)
 		rk := req.Kind
 		gv := rk.Version
 		if len(rk.Group) > 0 {
 			gv = fmt.Sprintf("%s/%s", rk.Group, rk.Version)
 		}
-		// TODO: add namespace
 		if rk.Kind == w.Kind && gv == w.APIVersion && req.Name == w.Name {
 			sb = &item
 			break
