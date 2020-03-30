@@ -37,6 +37,12 @@ type Binding struct {
 
 	// Target indicates the target objects to inject the binding data to.
 	To DataTarget `json:"to,omitempty"`
+
+	ContainerSelector *ContainerSelector `json:"containerSelector,omitempty"`
+}
+
+type ContainerSelector struct {
+	ByNames []string `json:"byNames,omitempty"`
 }
 
 type DataSource struct {

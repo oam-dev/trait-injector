@@ -12,6 +12,9 @@ spec:
       to:
         env: true
         # filePath: /data
+
+      # containerSelector:
+      #   byNames: ["a"]
   workloadRef:
     apiVersion: apps/v1
     kind: Deployment
