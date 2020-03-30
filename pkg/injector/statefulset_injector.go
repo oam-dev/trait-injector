@@ -82,7 +82,7 @@ func (ti *StatefulsetTargetInjector) Inject(ctx plugin.TargetContext, raw runtim
 			}
 			patches = append(patches, patch)
 		}
-		ti.Log.Info("injected secret to env", "statefulSet", path.Join(statefulSet.Namespace, statefulSet.Name))
+		ti.Log.Info("injected secret to env", "secret", secretName, "statefulSet", path.Join(statefulSet.Namespace, statefulSet.Name))
 	}
 
 	// inject secret as file in Pod

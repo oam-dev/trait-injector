@@ -82,7 +82,7 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 			}
 			patches = append(patches, patch)
 		}
-		ti.Log.Info("injected secret to env", "deployment", path.Join(deployment.Namespace, deployment.Name))
+		ti.Log.Info("injected secret to env", "secret", secretName, "deployment", path.Join(deployment.Namespace, deployment.Name))
 	}
 
 	// inject secret as file in Pod
