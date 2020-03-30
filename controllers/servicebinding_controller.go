@@ -163,8 +163,7 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 		if len(rk.Group) > 0 {
 			gv = fmt.Sprintf("%s/%s", rk.Group, rk.Version)
 		}
-		// TODO: add namespace
-		if rk.Kind == w.Kind && gv == w.APIVersion && req.Name == w.Name {
+		if rk.Kind == w.Kind && gv == w.APIVersion && req.Name == w.Name && req.Namespace == w.Namespace {
 			sb = &item
 			break
 		}
