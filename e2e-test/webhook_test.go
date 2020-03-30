@@ -68,6 +68,7 @@ var _ = Context("with a secret", func() {
 					APIVersion: "apps/v1",
 					Kind:       "Deployment",
 					Name:       "test-deploy",
+					Namespace:  "default",
 				},
 			},
 		}

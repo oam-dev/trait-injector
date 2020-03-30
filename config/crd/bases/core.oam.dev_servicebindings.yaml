@@ -107,10 +107,14 @@ spec:
                 name:
                   description: Name of the referenced workload.
                   type: string
+                namespace:
+                  description: Namespace of the referenced workload.
+                  type: string
               required:
               - apiVersion
               - kind
               - name
+              - namespace
               type: object
           type: object
         status:

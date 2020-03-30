@@ -15,7 +15,9 @@ spec:
 
       # containerSelector:
       #   byNames: ["a"]
+
   workloadRef:
     apiVersion: apps/v1
     kind: Deployment
     name: busybox1
+    namespace: default

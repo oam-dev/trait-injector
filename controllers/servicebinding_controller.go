@@ -156,14 +156,15 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 
 	var sb *corev1alpha1.ServiceBinding
 	for _, item := range sbl.Items {
-		obj := item.Spec.WorkloadRef
-		r.Log.Info("kind matching", "apiVersion", obj.APIVersion, "kind", obj.Kind, "request", req.Kind.String())
+		w := item.Spec.WorkloadRef
+		r.Log.Info("kind matching", "apiVersion", w.APIVersion, "kind", w.Kind, "ns/name", w.Namespace+"/"+w.Name, "request", req.Kind.String()+", "+req.Namespace+"/"+w.Name)
 		rk := req.Kind
 		gv := rk.Version
 		if len(rk.Group) > 0 {
 			gv = fmt.Sprintf("%s/%s", rk.Group, rk.Version)
 		}
-		if rk.Kind == obj.Kind && gv == obj.APIVersion {
+		// TODO: add namespace
+		if rk.Kind == w.Kind && gv == w.APIVersion && req.Name == w.Name {
 			sb = &item
 			break
 		}
@@ -176,8 +177,10 @@ func (r *ServiceBindingReconciler) handleAdmissionRequest(req *admissionv1beta1.
 	for _, b := range sb.Spec.Bindings {
 		switch {
 		case b.From.Secret != nil:
+			r.Log.Info("trying to inject secret")
 			return r.injectSecret(req, sb.Spec.WorkloadRef, b)
 		case b.From.Volume != nil:
+			r.Log.Info("trying to inject volume")
 			return r.injectVolume(req, sb.Spec.WorkloadRef, b)
 		}
 	}
@@ -193,7 +196,7 @@ func (r *ServiceBindingReconciler) injectVolume(req *admissionv1beta1.AdmissionR
 	}, req, w); ok {
 		return p, err
 	} else {
-		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
+		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind, "name", w.Name)
 		return nil, nil
 	}
 }
@@ -244,7 +247,7 @@ func (r *ServiceBindingReconciler) injectSecret(req *admissionv1beta1.AdmissionR
 	}, req, w); ok {
 		return p, err
 	} else {
-		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind)
+		r.Log.Info("unsupported target kind ", "apiVersion", w.APIVersion, "kind", w.Kind, "name", w.Name)
 		return nil, nil
 	}
 }
