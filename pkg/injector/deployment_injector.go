@@ -55,6 +55,11 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 	// Inject secret to env in deployment
 	if b.To.Env {
 		for i, c := range deployment.Spec.Template.Spec.Containers {
+			if s := b.ContainerSelector; s != nil {
+				if _, ok := FindString(s.ByNames, c.Name); !ok {
+					continue
+				}
+			}
 			if len(c.EnvFrom) == 0 {
 				patch := webhook.JSONPatchOp{
 					Operation: "add",
@@ -102,6 +107,11 @@ func (ti *DeploymentTargetInjector) Inject(ctx plugin.TargetContext, raw runtime
 		patches = append(patches, patch)
 
 		for i, c := range deployment.Spec.Template.Spec.Containers {
+			if s := b.ContainerSelector; s != nil {
+				if _, ok := FindString(s.ByNames, c.Name); !ok {
+					continue
+				}
+			}
 			if len(c.VolumeMounts) == 0 {
 				patch := webhook.JSONPatchOp{
 					Operation: "add",
