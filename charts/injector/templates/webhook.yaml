@@ -9,6 +9,7 @@ webhooks:
   - name: {{ include "charts.fullname" . }}.{{ .Release.Namespace }}.svc
 {{- with .Values.webhook }}
     matchPolicy: Equivalent
+    reinvocationPolicy: IfNeeded
     admissionReviewVersions: ["v1", "v1beta1"]
     sideEffects: None
     failurePolicy: Fail
