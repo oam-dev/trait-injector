@@ -50,7 +50,7 @@ type ServiceBindingReconciler struct {
 // +kubebuilder:rbac:groups=core.oam.dev,resources=servicebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.oam.dev,resources=servicebindings/status,verbs=get;update;patch
 
-func (r *ServiceBindingReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ServiceBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("servicebinding", req.NamespacedName)
 
